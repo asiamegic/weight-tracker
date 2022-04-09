@@ -1,0 +1,38 @@
+trigger:
+- master
+
+pool:
+  name: 'my-pool'
+
+steps:
+- task: printAllVariables@1
+  displayName: 'variables'
+
+- task: NodeTool@0
+  inputs:
+    versionSpec: '14.x'
+  displayName: 'node install'
+
+steps:
+- task: Npm@1
+  inputs:
+    command: 'install'
+    workingDir: '$(Build.SourcesDirectory)'
+  displayName: 'npm build'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)'
+    Contents: '**'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+  displayName: 'Artifacts'
+  
+- task: UniversalPackages@0
+  displayName: Universal Publish
+  inputs:
+    command: publish
+    publishDirectory: '$(Build.artifactstagingdirectory)'
+    vstsFeedPublish: 'azuredev1/my-feed2'
+    vstsFeedPackagePublish: 'my-artifact'
+    packagePublishDescription: 'my description'
+
