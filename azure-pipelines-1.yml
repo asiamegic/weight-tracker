@@ -37,3 +37,29 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+- stage: CD_staging
+  displayName: CD
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      name: bootcampApp-pool
+
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'Azure Pass - Sponsorship(3b9049a9-f773-49c9-998f-740b2f2c2c46)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az --version
+          az account show
+    - task: Docker@2
+      displayName: 'Login to Registry'
+      inputs:
+              containerRegistry: $(dockerRegistryServiceConnection)
+              command: 'login'
+    - task: CmdLine@2
+      inputs:
+        script: 'docker pull $(containerRegistry)/$(imageRepository):$(tag)'
+    
