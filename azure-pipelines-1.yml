@@ -70,6 +70,7 @@ stages:
 - stage: CD_staging
   variables:
   - group: var-staging
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   displayName: CD staging pull docker image from ACR
   jobs:
   - job: Build
@@ -125,6 +126,7 @@ stages:
 - stage: cd_production
   variables:
   - group: var-production
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   displayName: CD staging pull docker image from ACR
   jobs:
   - job: Build
