@@ -43,7 +43,7 @@ stages:
   - job: Build
     displayName: Build
     pool:
-      name: bootcampApp-pool
+      name: my-pool
 
     steps:
     - task: AzureCLI@2
