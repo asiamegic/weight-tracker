@@ -38,7 +38,7 @@ stages:
         tags: |
           $(tag)
 
-#CD_staging
+
 - stage: CD_staging
   displayName: CD staging pull docker image from ACR
   jobs:
