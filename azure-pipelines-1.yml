@@ -76,7 +76,7 @@ stages:
       displayName:  kill dock ps
       inputs:
         targetType: 'inline'
-        script: 'docker stop stupefied_herschel'
+        script: 'docker stop artem'
 
     - task: CmdLine@2
       inputs:
@@ -92,4 +92,4 @@ stages:
       displayName:  Run Container
       inputs:
         targetType: 'inline'
-        script: 'docker run --restart always -d -p 0.0.0.0:8080:8080/tcp artemrafikov.azurecr.io/artemimage:latest'
+        script: 'docker run --restart always --name artem -d -p 0.0.0.0:8080:8080/tcp artemrafikov.azurecr.io/artemimage:latest'
