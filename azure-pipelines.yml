@@ -1,0 +1,67 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '3ade6d60-de9a-4733-8fe8-b6b4d159666b'
+  imageRepository: 'dockerartem'
+  containerRegistry: 'artemrafikov.azurecr.io'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+          
+- stage: CD_staging
+  displayName: CD
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      name: bootcampApp-pool
+
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'Azure Pass - Sponsorship(3b9049a9-f773-49c9-998f-740b2f2c2c46)'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az --version
+          az account show
+    - task: Docker@2
+      displayName: 'Login to Registry'
+      inputs:
+              containerRegistry: $(dockerRegistryServiceConnection)
+              command: 'login'
+    - task: CmdLine@2
+      inputs:
+        script: 'docker pull $(containerRegistry)/$(imageRepository):$(tag)'
+    
+
