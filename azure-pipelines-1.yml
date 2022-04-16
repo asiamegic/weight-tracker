@@ -70,9 +70,17 @@ stages:
       inputs:
               containerRegistry: $(dockerRegistryServiceConnection)
               command: 'login'
+    
+    
+    - task: Bash@3
+      displayName:  kill dock ps
+      inputs:
+        targetType: 'inline'
+        script: 'docker stop $(docker ps)'
+        
     - task: CmdLine@2
       inputs:
-        script: 'docker pull $(containerRegistry)/$(imageRepository):$(tag)'
+        script: 'docker pull artemrafikov.azurecr.io/artemimage:latest'
     
     # - task: Bash@3
     #   displayName:  Run Container
