@@ -45,8 +45,6 @@ stages:
   displayName: Build and push + .env staging
   pool:
     name: my-pool
-    demands:
-     - agent.name -equals staging-agent
   jobs:
   - job: Build
     displayName: Build and Push
