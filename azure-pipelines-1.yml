@@ -21,14 +21,61 @@ variables:
   vmImageName: 'ubuntu-latest'
 
 stages:
-- stage: Build
-  displayName: CI Build and push stage docker image
+# - stage: Build
+#   displayName: CI Build and push stage docker image
+#   jobs:
+#   - job: Build
+#     displayName: Build
+#     pool:
+#       name: my-pool
+#     steps:
+#     - task: Docker@2
+#       displayName: Build and push an image to container registry
+#       inputs:
+#         command: buildAndPush
+#         repository: $(imageRepository)
+#         dockerfile: $(dockerfilePath)
+#         containerRegistry: $(dockerRegistryServiceConnection)
+#         tags: |
+#           $(tag)
+
+- stage: CI_build_image_staging
+  variables:
+  - group: var-staging
+  displayName: Build and push + .env staging
+  pool:
+    name: my-pool
+    demands:
+     - agent.name -equals staging-agent
   jobs:
   - job: Build
-    displayName: Build
-    pool:
-      name: my-pool
+    displayName: Build and Push
     steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'sudo apt-get install sshpass'
+    - bash: |
+        sudo chmod 666 /var/run/docker.sock
+        echo "# Host configuration
+        PORT=8080
+        HOST=0.0.0.0
+        #Postgres configuration
+        PGHOST=staging-kf-postgres-flex-server.postgres.database.azure.com
+        PGUSERNAME=postgres
+        PGDATABASE=postgres
+        PGPASSWORD=$(staging-postgres-pass)
+        PGPORT=5432
+
+        HOST_URL=http://$(staging-lb-ip):8080
+        COOKIE_ENCRYPT_PWD=superAwesomePasswordStringThatIsAtLeast32CharactersLong!
+        NODE_ENV=development
+
+        # Okta configuration
+        OKTA_ORG_URL=https://dev-98291338.okta.com
+        OKTA_CLIENT_ID=$(staging-okta-id)
+        OKTA_CLIENT_SECRET=$(staging-okta-secret)" > ./.env
+      displayName: Creating staging .env
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
@@ -37,68 +84,68 @@ stages:
         dockerfile: $(dockerfilePath)
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
-          $(tag)
+          Staging
+          
 
+# - stage: CD_staging
+#   variables:
+#   - group: var-staging
+#   displayName: CD staging pull docker image from ACR
+#   jobs:
+#   - job: Build
+#     displayName: Build
+#     pool:
+#       name: my-pool
 
-- stage: CD_staging
-  variables:
-  - group: var-staging
-  displayName: CD staging pull docker image from ACR
-  jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      name: my-pool
-
-    steps:
-    - task: AzureCLI@2
-      inputs:
-        azureSubscription: 'Azure Pass - Sponsorship(ee9699ca-a8f8-4329-94ef-50c93be9524e)'
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az --version
-          az account show
+#     steps:
+#     - task: AzureCLI@2
+#       inputs:
+#         azureSubscription: 'Azure Pass - Sponsorship(ee9699ca-a8f8-4329-94ef-50c93be9524e)'
+#         scriptType: 'bash'
+#         scriptLocation: 'inlineScript'
+#         inlineScript: |
+#           az --version
+#           az account show
     
-    - task: CmdLine@2
-      displayName: Stop Current Container
-      inputs:
-        script: 'docker rm -f  weighttracker || true'
+#     - task: CmdLine@2
+#       displayName: Stop Current Container
+#       inputs:
+#         script: 'docker rm -f  weighttracker || true'
       
-    - task: Docker@2
-      displayName: 'Login to Registry'
-      inputs:
-              containerRegistry: $(dockerRegistryServiceConnection)
-              command: 'login'
+#     - task: Docker@2
+#       displayName: 'Login to Registry'
+#       inputs:
+#               containerRegistry: $(dockerRegistryServiceConnection)
+#               command: 'login'
     
     
-    # - task: Bash@3
-    #   displayName:  kill dock ps
-    #   inputs:
-    #     targetType: 'inline'
-    #     script: 'docker stop artem'
+#     # - task: Bash@3
+#     #   displayName:  kill dock ps
+#     #   inputs:
+#     #     targetType: 'inline'
+#     #     script: 'docker stop artem'
 
-    - task: Bash@3
-      displayName:  kill dock ps
-      inputs:
-        targetType: 'inline'
-        script: |
-          if  [ $( docker ps -aq | wc -w ) -gt 0 ]; then
-                   docker rm -f $(docker ps -aq)
-                   docker rmi $(docker images -q)
-                  fi
-    - task: CmdLine@2
-      inputs:
-        script: 'docker pull artemrafikov.azurecr.io/artemimage:latest'
+#     - task: Bash@3
+#       displayName:  kill dock ps
+#       inputs:
+#         targetType: 'inline'
+#         script: |
+#           if  [ $( docker ps -aq | wc -w ) -gt 0 ]; then
+#                    docker rm -f $(docker ps -aq)
+#                    docker rmi $(docker images -q)
+#                   fi
+#     - task: CmdLine@2
+#       inputs:
+#         script: 'docker pull artemrafikov.azurecr.io/artemimage:latest'
     
-    # - task: Bash@3
-    #   displayName:  Run Container
-    #   inputs:
-    #     targetType: 'inline'
-    #     script: 'docker run -d --restart=always -p 8080:8080 --name weighttracker  -e PGHOST=$(bd_host) -e PORT=8080 -e HOST=0.0.0.0 -e PGUSERNAME=$(bd_username) -e PGDATABASE=postgres -e PGPASSWORD=$(bd_pass) -e PGPORT=5432 -e HOST_URL=$(host_ip_public) -e COOKIE_ENCRYPT_PWD=$(COOKIE_ENCRYPT_PWD) -e NODE_ENV=development -e OKTA_ORG_URL=$(okta_rul) -e OKTA_CLIENT_ID=$(okta_id) -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'
+#     # - task: Bash@3
+#     #   displayName:  Run Container
+#     #   inputs:
+#     #     targetType: 'inline'
+#     #     script: 'docker run -d --restart=always -p 8080:8080 --name weighttracker  -e PGHOST=$(bd_host) -e PORT=8080 -e HOST=0.0.0.0 -e PGUSERNAME=$(bd_username) -e PGDATABASE=postgres -e PGPASSWORD=$(bd_pass) -e PGPORT=5432 -e HOST_URL=$(host_ip_public) -e COOKIE_ENCRYPT_PWD=$(COOKIE_ENCRYPT_PWD) -e NODE_ENV=development -e OKTA_ORG_URL=$(okta_rul) -e OKTA_CLIENT_ID=$(okta_id) -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'
 
-    - task: Bash@3
-      displayName:  Run Container
-      inputs:
-        targetType: 'inline'
-        script: 'docker run --restart always -d -p 0.0.0.0:8080:8080/tcp artemrafikov.azurecr.io/artemimage:latest'
+#     - task: Bash@3
+#       displayName:  Run Container
+#       inputs:
+#         targetType: 'inline'
+#         script: 'docker run --restart always -d -p 0.0.0.0:8080:8080/tcp artemrafikov.azurecr.io/artemimage:latest'
