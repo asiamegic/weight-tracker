@@ -13,20 +13,20 @@ variables:
   dockerRegistryServiceConnection: '3ade6d60-de9a-4733-8fe8-b6b4d159666b'
   imageRepository: 'dockerartem'
   containerRegistry: 'artemrafikov.azurecr.io'
-  dockerfilePath: '**/Dockerfile'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
 
 stages:
-- stage: Build
+- stage: CI_APP
   displayName: Build and push stage
   jobs:
   - job: Build
     displayName: Build
     pool:
-      vmImage: $(vmImageName)
+      vmImage: my_pool
     steps:
     - task: Docker@2
       displayName: Build and push an image to container registry
@@ -38,13 +38,13 @@ stages:
         tags: |
           $(tag)
           
-- stage: CD_staging
+- stage: CD_APP_staging
   displayName: CD
   jobs:
   - job: Build
     displayName: Build
     pool:
-      name: bootcampApp-pool
+      name: my_pool
 
     steps:
     - task: AzureCLI@2
