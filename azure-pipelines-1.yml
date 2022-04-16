@@ -72,12 +72,21 @@ stages:
               command: 'login'
     
     
+    # - task: Bash@3
+    #   displayName:  kill dock ps
+    #   inputs:
+    #     targetType: 'inline'
+    #     script: 'docker stop artem'
+
     - task: Bash@3
       displayName:  kill dock ps
       inputs:
         targetType: 'inline'
-        script: 'docker stop artem'
-
+        script: |
+          if  [ $( docker ps -aq | wc -w ) -gt 0 ]; then
+                   docker rm -f $(docker ps -aq)
+                   docker rmi $(docker images -q)
+                  fi
     - task: CmdLine@2
       inputs:
         script: 'docker pull artemrafikov.azurecr.io/artemimage:latest'
@@ -92,4 +101,4 @@ stages:
       displayName:  Run Container
       inputs:
         targetType: 'inline'
-        script: 'docker run --restart always --name artem -d -p 0.0.0.0:8080:8080/tcp artemrafikov.azurecr.io/artemimage:latest'
+        script: 'docker run --restart always -d -p 0.0.0.0:8080:8080/tcp artemrafikov.azurecr.io/artemimage:latest'
