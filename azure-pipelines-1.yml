@@ -46,7 +46,6 @@ stages:
     pool:
       name: my-pool
 
-
     steps:
     - task: AzureCLI@2
       inputs:
