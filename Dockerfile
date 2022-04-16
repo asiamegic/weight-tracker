@@ -1,12 +1,10 @@
-FROM node:14-alpine
-COPY . /bootcamp-app
+FROM node:15-alpine
+
 WORKDIR /bootcamp-app
+COPY . .
+RUN npm install
 
 EXPOSE 8080
 
-RUN npm install
-
 CMD npm run initdb && npm run dev
-
-
 
