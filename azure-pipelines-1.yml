@@ -4,6 +4,7 @@
 
 trigger:
 - master
+- feature/*
 
 resources:
 - repo: self
@@ -40,6 +41,8 @@ stages:
 
 
 - stage: CD_staging
+  variables:
+  - group: var-staging
   displayName: CD staging pull docker image from ACR
   jobs:
   - job: Build
