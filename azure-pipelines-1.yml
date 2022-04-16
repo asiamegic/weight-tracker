@@ -21,7 +21,7 @@ variables:
 
 stages:
 - stage: Build
-  displayName: Build and push stage
+  displayName: CI Build and push stage docker image
   jobs:
   - job: Build
     displayName: Build
@@ -39,7 +39,7 @@ stages:
           $(tag)
 
 - stage: CD_staging
-  displayName: CD
+  displayName: CD staging pull docker image from ACR
   jobs:
   - job: Build
     displayName: Build
