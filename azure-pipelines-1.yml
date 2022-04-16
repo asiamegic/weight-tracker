@@ -15,7 +15,7 @@ variables:
   imageRepository: 'artemimage'
   containerRegistry: 'artemrafikov.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  tag: '$(Build.BuildId)'
+  tag: 'latest'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -78,5 +78,5 @@ stages:
       displayName:  Run Container
       inputs:
         targetType: 'inline'
-        script: 'docker run -d --restart=always -p 8080:8080 --name weighttracker  -e PGHOST=$(bd_host) -e PORT=8080 -e HOST=0.0.0.0 -e PGUSERNAME=$(bd_username) -e PGDATABASE=postgres -e PGPASSWORD=$(bd_pass) -e PGPORT=5432 -e HOST_URL=$(host_ip_public) -e COOKIE_ENCRYPT_PWD=$(COOKIE_ENCRYPT_PWD) -e NODE_ENV=development -e OKTA_ORG_URL=$(okta_rul) -e OKTA_CLIENT_ID=$(okta_id) -e OKTA_CLIENT_SECRET=$(okta_secret) $(containerRegistry)/$(imageRepository):$(tag)'
+        script: 'docker run -d --restart=always -p 8080:8080 --name weighttracker  -e PGHOST=$(bd_host) -e PORT=8080 -e HOST=0.0.0.0 -e PGUSERNAME=$(bd_username) -e PGDATABASE=postgres -e PGPASSWORD=$(bd_pass) -e PGPORT=5432 -e HOST_URL=$(host_ip_public) -e COOKIE_ENCRYPT_PWD=$(COOKIE_ENCRYPT_PWD) -e NODE_ENV=development -e OKTA_ORG_URL=$(okta_rul) -e OKTA_CLIENT_ID=$(okta_id) -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'
 
