@@ -118,13 +118,7 @@ stages:
               containerRegistry: $(dockerRegistryServiceConnection)
               command: 'login'
     
-    
-    # - task: Bash@3
-    #   displayName:  kill dock ps
-    #   inputs:
-    #     targetType: 'inline'
-    #     script: 'docker stop artem'
-
+ 
     - task: Bash@3
       displayName:  kill dock ps
       inputs:
@@ -138,14 +132,9 @@ stages:
       inputs:
         script: 'docker pull artemrafikov.azurecr.io/artemimage:Staging'
     
-    # - task: Bash@3
-    #   displayName:  Run Container
-    #   inputs:
-    #     targetType: 'inline'
-    #     script: 'docker run -d --restart=always -p 8080:8080 --name weighttracker  -e PGHOST=$(bd_host) -e PORT=8080 -e HOST=0.0.0.0 -e PGUSERNAME=$(bd_username) -e PGDATABASE=postgres -e PGPASSWORD=$(bd_pass) -e PGPORT=5432 -e HOST_URL=$(host_ip_public) -e COOKIE_ENCRYPT_PWD=$(COOKIE_ENCRYPT_PWD) -e NODE_ENV=development -e OKTA_ORG_URL=$(okta_rul) -e OKTA_CLIENT_ID=$(okta_id) -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'
 
     - task: Bash@3
       displayName:  Run Container
       inputs:
         targetType: 'inline'
-        script: 'docker run -d -p 8080:8080 -e PGHOST=postgresql-weighttracker-server.postgres.database.azure.com   -e PORT=8080    -e  HOST=0.0.0.0  -e PGUSERNAME=postgres  -e PGDATABASE=postgres   -e  PGPASSWORD=postgres  -e  PGPORT=5432   -e HOST_URLL=HOST_URL=http://$(host_ip_public):8080   -e COOKIE_ENCRYPT_PWD=superAwesomePasswordStringThatIsAtLeast32CharactersLong!   -e  NODE_ENV=development   -e  OKTA_ORG_URL=https://dev-87322128.okta.com   -e  OKTA_CLIENT_ID=0oa42d8cu6HHVngpE5d7   -e OKTA_CLIENT_SECRET=1AUbkJbdFajJrSHiarR8GiA_iXhyVOxDruIAw__B artemrafikov.azurecr.io/artemimage:latest'
+        script: 'docker run -d -p 8080:8080 -e PGHOST=$(bd_host) -e PORT=8080    -e  HOST=0.0.0.0  -e PGUSERNAME=postgres  -e PGDATABASE=postgres   -e  PGPASSWORD=$(bd_pass)  -e  PGPORT=5432   -e HOST_URLL=HOST_URL=http://$(host_ip_public):8080   -e COOKIE_ENCRYPT_PWD=superAwesomePasswordStringThatIsAtLeast32CharactersLong!   -e  NODE_ENV=development   -e  OKTA_ORG_URL=https://dev-87322128.okta.com   -e  OKTA_CLIENT_ID=$(okta_id)   -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'
