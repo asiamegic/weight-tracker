@@ -55,6 +55,11 @@ stages:
         inlineScript: |
           az --version
           az account show
+    
+    - task: CmdLine@2
+      displayName: Stop Current Container
+      inputs:
+        script: 'docker rm -f  weighttracker || true'
       
     - task: Docker@2
       displayName: 'Login to Registry'
