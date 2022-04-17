@@ -73,52 +73,55 @@ stages:
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   displayName: CD staging pull docker image from ACR
   jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      name: stage-pool
-
-    steps:
-    - task: AzureCLI@2
-      inputs:
-        azureSubscription: 'Azure Pass - Sponsorship(ee9699ca-a8f8-4329-94ef-50c93be9524e)'
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az --version
-          az account show
-    
-    - task: CmdLine@2
-      displayName: Stop Current Container
-      inputs:
-        script: 'docker rm -f  weighttracker || true'
+  - deployment: staging
+    displayName: Deploy to Staging
+    environment:
+      name: staging
+      resourceType: VirtualMachine
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'Azure Pass - Sponsorship(ee9699ca-a8f8-4329-94ef-50c93be9524e)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az --version
+                az account show
+          
+          - task: CmdLine@2
+            displayName: Stop Current Container
+            inputs:
+              script: 'docker rm -f  weighttracker || true'
+            
+          - task: Docker@2
+            displayName: 'Login to Registry'
+            inputs:
+                    containerRegistry: $(dockerRegistryServiceConnection)
+                    command: 'login'
+          
       
-    - task: Docker@2
-      displayName: 'Login to Registry'
-      inputs:
-              containerRegistry: $(dockerRegistryServiceConnection)
-              command: 'login'
-    
- 
-    - task: Bash@3
-      displayName:  kill dock ps
-      inputs:
-        targetType: 'inline'
-        script: |
-          if  [ $( docker ps -aq | wc -w ) -gt 0 ]; then
-                   docker rm -f $(docker ps -aq)
-                   docker rmi $(docker images -q)
-                  fi
-    - task: CmdLine@2
-      inputs:
-        script: 'docker pull artemrafikov.azurecr.io/artemimage:Staging'
-    
+          - task: Bash@3
+            displayName:  kill dock ps
+            inputs:
+              targetType: 'inline'
+              script: |
+                if  [ $( docker ps -aq | wc -w ) -gt 0 ]; then
+                        docker rm -f $(docker ps -aq)
+                        docker rmi $(docker images -q)
+                        fi
+          - task: CmdLine@2
+            inputs:
+              script: 'docker pull artemrafikov.azurecr.io/artemimage:Staging'
+          
 
-    - task: Bash@3
-      displayName:  Run Container
-      inputs:
-        targetType: 'inline'
-        script: 'docker run -d -p 8080:8080 -e PGHOST=$(bd_host) -e PORT=8080    -e  HOST=0.0.0.0  -e PGUSERNAME=postgres  -e PGDATABASE=postgres   -e  PGPASSWORD=$(bd_pass)  -e  PGPORT=5432   -e HOST_URLL=HOST_URL=http://$(host_ip_public):8080   -e COOKIE_ENCRYPT_PWD=superAwesomePasswordStringThatIsAtLeast32CharactersLong!   -e  NODE_ENV=development   -e  OKTA_ORG_URL=https://dev-87322128.okta.com   -e  OKTA_CLIENT_ID=$(okta_id)   -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'
+          - task: Bash@3
+            displayName:  Run Container
+            inputs:
+              targetType: 'inline'
+              script: 'docker run -d -p 8080:8080 -e PGHOST=$(bd_host) -e PORT=8080    -e  HOST=0.0.0.0  -e PGUSERNAME=postgres  -e PGDATABASE=postgres   -e  PGPASSWORD=$(bd_pass)  -e  PGPORT=5432   -e HOST_URLL=HOST_URL=http://$(host_ip_public):8080   -e COOKIE_ENCRYPT_PWD=superAwesomePasswordStringThatIsAtLeast32CharactersLong!   -e  NODE_ENV=development   -e  OKTA_ORG_URL=https://dev-87322128.okta.com   -e  OKTA_CLIENT_ID=$(okta_id)   -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'
 
 
 
@@ -127,51 +130,53 @@ stages:
   variables:
   - group: var-production
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  displayName: CD staging pull docker image from ACR
   jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      name: prod-pool
-
-    steps:
-    - task: AzureCLI@2
-      inputs:
-        azureSubscription: 'Azure Pass - Sponsorship(ee9699ca-a8f8-4329-94ef-50c93be9524e)'
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az --version
-          az account show
-    
-    - task: CmdLine@2
-      displayName: Stop Current Container
-      inputs:
-        script: 'docker rm -f  weighttracker || true'
+  - deployment: production
+    displayName: Deploy to Production
+    environment:
+      name: production
+      resourceType: VirtualMachine
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'Azure Pass - Sponsorship(ee9699ca-a8f8-4329-94ef-50c93be9524e)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az --version
+                az account show
+          
+          - task: CmdLine@2
+            displayName: Stop Current Container
+            inputs:
+              script: 'docker rm -f  weighttracker || true'
+            
+          - task: Docker@2
+            displayName: 'Login to Registry'
+            inputs:
+                    containerRegistry: $(dockerRegistryServiceConnection)
+                    command: 'login'
+          
       
-    - task: Docker@2
-      displayName: 'Login to Registry'
-      inputs:
-              containerRegistry: $(dockerRegistryServiceConnection)
-              command: 'login'
-    
- 
-    - task: Bash@3
-      displayName:  kill dock ps
-      inputs:
-        targetType: 'inline'
-        script: |
-          if  [ $( docker ps -aq | wc -w ) -gt 0 ]; then
-                   docker rm -f $(docker ps -aq)
-                   docker rmi $(docker images -q)
-                  fi
-    - task: CmdLine@2
-      inputs:
-        script: 'docker pull artemrafikov.azurecr.io/artemimage:Staging'
-    
+          - task: Bash@3
+            displayName:  kill dock ps
+            inputs:
+              targetType: 'inline'
+              script: |
+                if  [ $( docker ps -aq | wc -w ) -gt 0 ]; then
+                        docker rm -f $(docker ps -aq)
+                        docker rmi $(docker images -q)
+                        fi
+          - task: CmdLine@2
+            inputs:
+              script: 'docker pull artemrafikov.azurecr.io/artemimage:Staging'
+          
 
-    - task: Bash@3
-      displayName:  Run Container
-      inputs:
-        targetType: 'inline'
-        script: 'docker run -d -p 8080:8080 -e PGHOST=$(bd_host) -e PORT=8080    -e  HOST=0.0.0.0  -e PGUSERNAME=postgres  -e PGDATABASE=postgres   -e  PGPASSWORD=$(bd_pass)  -e  PGPORT=5432   -e HOST_URLL=HOST_URL=http://$(host_ip_public):8080   -e COOKIE_ENCRYPT_PWD=superAwesomePasswordStringThatIsAtLeast32CharactersLong!   -e  NODE_ENV=development   -e  OKTA_ORG_URL=https://dev-87322128.okta.com   -e  OKTA_CLIENT_ID=$(okta_id)   -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'       
+          - task: Bash@3
+            displayName:  Run Container
+            inputs:
+              targetType: 'inline'
+              script: 'docker run -d -p 8080:8080 -e PGHOST=$(bd_host) -e PORT=8080    -e  HOST=0.0.0.0  -e PGUSERNAME=postgres  -e PGDATABASE=postgres   -e  PGPASSWORD=$(bd_pass)  -e  PGPORT=5432   -e HOST_URLL=HOST_URL=http://$(host_ip_public):8080   -e COOKIE_ENCRYPT_PWD=superAwesomePasswordStringThatIsAtLeast32CharactersLong!   -e  NODE_ENV=development   -e  OKTA_ORG_URL=https://dev-87322128.okta.com   -e  OKTA_CLIENT_ID=$(okta_id)   -e OKTA_CLIENT_SECRET=$(okta_secret) artemrafikov.azurecr.io/artemimage:latest'       
