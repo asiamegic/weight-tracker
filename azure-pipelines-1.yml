@@ -33,7 +33,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: 'sudo apt-get install sshpass'
-    # - bash: |
+    # - bash: | 
     #     sudo chmod 666 /var/run/docker.sock
     #     echo "# Host configuration
     #     PORT=8080
