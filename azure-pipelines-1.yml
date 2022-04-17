@@ -113,6 +113,7 @@ stages:
                         docker rmi $(docker images -q)
                         fi
           - task: CmdLine@2
+            displayName:  docker pull сontainer
             inputs:
               script: 'docker pull artemrafikov.azurecr.io/artemimage:Staging'
           
@@ -171,6 +172,7 @@ stages:
                         docker rmi $(docker images -q)
                         fi
           - task: CmdLine@2
+            displayName:  docker pull сontainer
             inputs:
               script: 'docker pull artemrafikov.azurecr.io/artemimage:Staging'
           
